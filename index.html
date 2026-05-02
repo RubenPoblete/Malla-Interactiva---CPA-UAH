@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Cambio: Título específico para la carrera de CPA -->
+    <title>Malla Curricular - Contador Público Auditor UAH</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+    <div class="header-uah">
+        <div class="logo-uah">
+            <button class="btn-menu" onclick="toggleSidebar()">☰</button>
+            <span class="sigla">uah</span>
+            <span class="slash">/</span>
+            <span class="texto">Universidad<br>Alberto Hurtado</span>
+        </div>
+        
+        <div class="header-title">
+            <!-- Cambio: Actualización del nombre de la carrera en el Header -->
+            <h1>Portal Académico<br><strong>Contador Público Auditor</strong></h1>
+            <div class="acciones-container">
+                <button id="btn-dark" onclick="toggleDarkMode()" class="btn-accion">🌙 Modo Oscuro</button>
+                <div class="custom-color-picker">
+                    <label for="colorPicker" style="font-size: 0.8em; font-weight: bold; cursor: pointer;">🎨 Color:</label>
+                    <input type="color" id="colorPicker" value="#F05032" oninput="cambiarColorTema(this.value)">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="vista-malla">
+        <div class="seccion-titulo-container">
+            <h2 class="seccion-titulo">Malla Interactiva</h2>
+            <!-- Cambio: Se elimina la referencia a menciones -->
+            <p class="seccion-subtitulo">Visualiza tu avance y planifica tu camino académico.</p>
+        </div>
+
+        <!-- ELIMINADO: Selector de menciones (Administración/Economía) ya que no aplica a CPA -->
+
+        <div style="display: flex; justify-content: center; margin-top: 15px;">
+            <button id="btn-exportar-malla" class="btn-accion" style="border-color: var(--color-naranjo); color: var(--color-naranjo);" onclick="exportarMalla()">📸 Exportar</button>
+        </div>
+
+        <div class="progreso-creditos-wrap">
+            <div class="progreso-creditos-barra">
+                <div id="barra-progreso" class="progreso-creditos-fill"></div>
+            </div>
+            <div id="contador-creditos" class="progreso-creditos-label">0 / 0 créditos <span class="creditos-pct">0%</span></div>
+        </div>
+
+        <div class="leyenda" id="leyenda"></div>
+        <div class="malla-container" id="malla"></div>
+    </div>
+
+    <div id="vista-simulador" style="display: none; padding: 30px 50px;">
+        <div class="calc-header-section" style="padding: 0 0 20px 0;">
+            <div class="calc-titulo-wrap">
+                <h2 class="calc-titulo">Simulador de Semestre</h2>
+                <span class="calc-subtitulo">Proyecta tu carga académica para el próximo periodo.</span>
+            </div>
+            <div id="sim-controles" style="display: flex; gap: 10px;">
+                <button id="sim-btn-fase" class="btn-accion calc-btn-nuevo" onclick="avanzarFaseSimulador()">Siguiente</button>
+                <button class="btn-accion" style="border-color: #d9534f; color: #d9534f;" onclick="reiniciarSimulador()">↻ Reiniciar</button>
+            </div>
+        </div>
+
+        <div class="sim-fases-wrap">
+            <div id="sim-fase-1" class="sim-fase activa">Selecciona tus cursos aprobados</div>
+            <div id="sim-fase-2" class="sim-fase">Selecciona lo que cursarás</div>
+        </div>
+
+        <div id="sim-panel-creditos" style="display: none; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-tarjeta); padding: 15px 25px; border-radius: 12px; border: 1px solid var(--borde-tarjeta); box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div>
+                    <span style="font-weight: bold; font-size: 1.1em;">Créditos Seleccionados: </span>
+                    <strong id="sim-total-creditos" style="font-size: 1.5em; color: var(--color-naranjo);">0</strong>
+                </div>
+                <div id="sim-alerta-msg" class="sim-alerta neutral">
+                    Selecciona entre 30 y 60 créditos.
+                </div>
+            </div>
+        </div>
+
+        <div class="malla-container" id="malla-simulador" style="min-height: 500px; padding: 20px 0;"></div>
+    </div>
+
+<!-- Calendario -->
+
+    <div id="vista-calendario" style="display: none;">
+    <div class="calc-header-section">
+        <div class="calc-titulo-wrap">
+            <h2 class="calc-titulo">Planificador de Estudio</h2>
+            <span class="calc-subtitulo">Organiza tus fechas clave, define metas y planifica tus horas de estudio.</span>
+        </div>
+    </div>
+
+    <div class="calc-body">
+        <div class="calc-container">
+            <div class="calc-panel-izq" style="flex: 1.5;">
+                <div class="cal-header-mes">
+                    <button class="btn-accion" onclick="cambiarMesCal(-1)">&#8592;</button>
+                    <h3 id="cal-mes-anio-texto" style="margin: 0; color: var(--color-naranjo);">Mes Año</h3>
+                    <button class="btn-accion" onclick="cambiarMesCal(1)">&#8594;</button>
+                </div>
+                
+                <div class="cal-dias-semana">
+                    <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+                </div>
+                <div id="cal-grid" class="cal-grid"></div>
+                <div id="cal-leyenda-mobile" class="cal-leyenda">
+    <span class="leyenda-item"><span class="punto evaluacion"></span> Evaluación</span>
+    <span class="leyenda-item"><span class="punto estudio"></span> Estudio</span>
+    <span class="leyenda-item"><span class="punto receso"></span> Receso</span>
+</div>
+                
+                <button class="btn-agregar-eval" onclick="abrirModalEventoCal()">+ Agregar Evento</button>
+            </div>
+
+            <div class="calc-panel-der" style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--borde-tarjeta); padding-bottom: 10px; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">Mis Metas</h3>
+                    <button class="btn-accion btn-borrar-metas" style="padding: 5px 12px; font-size: 0.8em; border-color: #d9534f; color: #d9534f;" onclick="abrirModalEliminarTodasMetas()">Borrar Todo</button>
+                </div>
+                
+                <div id="cal-lista-metas" style="margin-bottom: 15px;"></div>
+                <button class="btn-agregar-eval" style="width: 100%; margin-top: 0;" onclick="abrirModalMetaCal()">+ Nueva Meta</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-evento-cal" class="modal-fondo" style="display: none;">
+    <div class="modal-caja">
+        <h3 style="margin-top:0; color: var(--color-naranjo);">Nuevo Evento</h3>
+        <input type="text" id="input-cal-titulo" class="input-calc" placeholder="Ej: Prueba Cálculo" style="width: 100%; margin-bottom: 10px;">
+        <input type="date" id="input-cal-fecha" class="input-calc" style="width: 100%; margin-bottom: 10px;">
+        <select id="input-cal-tipo" class="input-calc" style="width: 100%; margin-bottom: 20px;">
+            <option value="evaluacion">Evaluación / Entrega</option>
+            <option value="estudio">Bloque de Estudio</option>
+            <option value="receso">Feriado / Receso</option>
+            <option value="actividad"> Actividad</option>
+        </select>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="btn-accion" onclick="cerrarModalEventoCal()">Cancelar</button>
+            <button class="btn-accion" style="background:var(--color-naranjo); color:#fff;" onclick="guardarEventoCal()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-meta-cal" class="modal-fondo" style="display: none;">
+    <div class="modal-caja">
+        <h3 style="margin-top:0; color: var(--color-naranjo);">Nueva Meta Semanal</h3>
+        <label style="font-size: 0.85em; font-weight: bold; color: var(--texto-bloqueado);">Objetivo (Horas de estudio):</label>
+        <input type="number" id="input-meta-horas" class="input-calc" placeholder="Ej: 6" min="1" style="width: 100%; margin-bottom: 10px;">
+        
+        <label style="font-size: 0.85em; font-weight: bold; color: var(--texto-bloqueado);">Meta Académica:</label>
+        <input type="text" id="input-meta-descripcion" class="input-calc" placeholder="Ej: Sacar > 5.0 en la solemne de Contabilidad" style="width: 100%; margin-bottom: 20px;">
+        
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="btn-accion" onclick="cerrarModalMetaCal()">Cancelar</button>
+            <button class="btn-accion" style="background:var(--color-naranjo); color:#fff;" onclick="guardarMetaCal()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-confirmar-evento" class="modal-fondo" style="display: none;">
+    <div class="modal-caja" style="text-align: center;">
+        <h3 style="margin-top:0; color: #d9534f;">⚠️ Eliminar Evento</h3>
+        <p>¿Estás seguro de que quieres borrar este evento del calendario?</p>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+            <button class="btn-accion" onclick="cerrarModalConfirmarEvento()">Cancelar</button>
+            <button class="btn-accion" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="confirmarBorradoEvento()">Sí, borrar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-confirmar-meta" class="modal-fondo" style="display: none;">
+    <div class="modal-caja" style="text-align: center;">
+        <h3 style="margin-top:0; color: #d9534f;">⚠️ Eliminar Meta</h3>
+        <p>¿Quieres eliminar esta meta de estudio?</p>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+            <button class="btn-accion" onclick="cerrarModalConfirmarMeta()">Cancelar</button>
+            <button class="btn-accion" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="confirmarBorradoMeta()">Sí, borrar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-eliminar-todas-metas" class="modal-fondo" style="display: none;">
+    <div class="modal-caja" style="text-align: center;">
+        <h3 style="margin-top:0; color: #d9534f;">🚨 Borrar Todas las Metas</h3>
+        <p>¿Estás seguro de que quieres eliminar todos tus objetivos? Esta acción no se puede deshacer.</p>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+            <button class="btn-accion" onclick="cerrarModalEliminarTodasMetas()">Cancelar</button>
+            <button class="btn-accion" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="confirmarEliminarTodasMetas()">Sí, borrar todo</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-dia-mobile" class="modal-fondo" style="display: none;">
+    <div class="modal-caja">
+        <h3 id="modal-dia-titulo" style="margin-top:0; color: var(--color-naranjo);">Eventos del día</h3>
+        <div id="modal-dia-lista"></div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+            <button class="btn-accion" onclick="cerrarModalDiaMobile()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Vista Calculadora -->
+<div id="vista-calculadora" style="display: none;">
+          <!-- Cabecera -->
+        <div class="calc-header-section">
+            <div class="calc-titulo-wrap">
+                <h2 class="calc-titulo">Calculadora de Notas</h2>
+                <span class="calc-subtitulo">Registra tus evaluaciones y calcula lo que necesitas en el examen.</span>
+            </div>
+    
+            <div class="calc-botones-header">
+                <button class="btn-accion calc-btn-nuevo" onclick="abrirModalCrearPerfil()">+ Nuevo Curso</button>
+                <button class="btn-accion" style="border-color: #d9534f; color: #d9534f;" onclick="eliminarTodosLosCursos()">Eliminar Todo</button>
+            </div>
+        </div>
+
+        <!-- Tabs de perfiles -->
+        <div class="calc-tabs-wrap">
+            <div class="calc-tabs" id="calc-tabs"></div>
+        </div>
+
+        <div class="calc-body">
+        <div class="calc-container">
+            <div class="calc-panel-izq">
+                <div class="calc-header-filas" style="display: flex; gap: 10px; font-weight: bold; font-size: 0.85em; color: var(--texto-bloqueado); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--borde-tarjeta); align-items: center;">
+                    <span style="width: 20px; flex-shrink: 0;"></span>
+                    <span style="flex: 1;">Evaluación</span>
+                    <span style="width: 90px; text-align: center;">Nota</span>
+                    <span style="width: 90px; text-align: center;">Peso (%)</span>
+                    <span style="width: 32px;"></span>
+                </div>
+                <div id="calc-filas"></div>
+                <button class="btn-agregar-eval" onclick="agregarFilaCalc()">+ Agregar Evaluación</button>
+            </div>
+
+            <div class="calc-panel-der">
+                <div class="calc-resumen">
+                    <h3 style="margin-top: 0; border-bottom: 1px solid var(--borde-tarjeta); padding-bottom: 10px;">Resumen</h3>
+                    <div class="calc-stat"><span>Porcentaje Ingresado:</span> <strong id="calc-suma-peso">0%</strong></div>
+                    <div class="calc-stat"><span>Promedio Parcial:</span> <strong id="calc-promedio" style="color: var(--color-naranjo); font-size: 1.5em;">-</strong></div>
+                    <hr style="border-color: var(--borde-tarjeta); margin: 15px 0;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <label style="font-size: 0.9em; font-weight: bold;">Nota de aprobación:</label>
+    <input type="text" id="calc-meta" value="4.0" class="input-calc" style="width: 70px; padding: 8px; text-align: center;" oninput="formatearNota(event, this)">
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <label style="font-size: 0.9em; font-weight: bold;">Ponderación Examen Final:</label>
+    <div style="display: flex; align-items: center; gap: 5px;">
+        <input type="text" id="calc-peso-examen" value="30" class="input-calc" style="width: 70px; padding: 8px; text-align: center;" oninput="formatearPeso(this)">
+        <span style="font-weight: bold;">%</span>
+    </div>
+</div>
+                    
+                    <div id="calc-mensaje-final" style="padding: 15px; border-radius: 8px; background: var(--bg-bloqueado); text-align: center; font-size: 0.95em;">
+                        Ingresa tus calificaciones y sus ponderaciones.
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div><!-- /calc-body -->
+    </div>
+
+    <!-- Modal: Crear/Renombrar Perfil -->
+    <div id="modal-perfil-calc" class="modal-fondo" style="display: none;">
+        <div class="modal-caja">
+            <h3 id="modal-perfil-titulo" style="margin-top:0; color: var(--color-naranjo);">Gestión de Ramo</h3>
+            <input type="text" id="input-nombre-perfil" class="input-calc" placeholder="Ej: Microeconomía" maxlength="30">
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button class="btn-accion" onclick="cerrarModalPerfil()">Cancelar</button>
+                <button class="btn-accion" style="background:var(--color-naranjo); color:#fff;" onclick="guardarModalPerfil()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Eliminar Perfil -->
+    <div id="modal-eliminar-perfil" class="modal-fondo" style="display: none;">
+        <div class="modal-caja" style="text-align: center;">
+            <h3 style="margin-top:0; color: #d9534f;">⚠️ Eliminar Ramo</h3>
+            <p style="margin-bottom: 20px;">¿Estás seguro de que quieres borrar <strong id="nombre-ramo-borrar"></strong> y todas sus notas?</p>
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <button class="btn-accion" onclick="cerrarModalEliminarPerfil()">Cancelar</button>
+                <button class="btn-accion" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="confirmarEliminarPerfil()">Sí, borrar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-eliminar-todo" class="modal-fondo" style="display: none;">
+        <div class="modal-caja" style="text-align: center;">
+            <h3 style="margin-top:0; color: #d9534f;">🚨 Borrado Masivo</h3>
+            <p style="margin-bottom: 20px;">¿Estás seguro de que quieres borrar <strong>TODOS</strong> los cursos y sus notas?<br><span style="font-size: 0.85em; color: var(--texto-bloqueado);">Esta acción no se puede deshacer.</span></p>
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <button class="btn-accion" onclick="cerrarModalEliminarTodo()">Cancelar</button>
+                <button class="btn-accion" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="confirmarEliminarTodo()">Sí, borrar todo</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-reiniciar-simulador" class="modal-fondo" style="display: none;">
+        <div class="modal-caja" style="text-align: center;">
+            <h3 style="margin-top:0; color: var(--color-naranjo);">↻ Reiniciar Simulador</h3>
+            <p style="margin-bottom: 20px;">¿Quieres limpiar el simulador y volver a la Fase 1?</p>
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <button class="btn-accion" onclick="cerrarModalReiniciarSim()">Cancelar</button>
+                <button class="btn-accion" style="background:var(--color-naranjo); color:#fff; border-color:var(--color-naranjo);" onclick="confirmarReiniciarSim()">Sí, reiniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-notificacion" class="toast"></div>
+
+    <!-- Menú lateral -->
+    <div id="sidebar-overlay" class="menu-overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar-left" class="sidebar-izq">
+        <div class="sidebar-header">
+            <h2>Navegación</h2>
+            <button onclick="toggleSidebar()" class="btn-cerrar-menu">✖</button>
+        </div>
+        <button class="btn-nav activo" onclick="cambiarVista('malla')">📊 Malla Curricular</button>
+        <button class="btn-nav"        onclick="cambiarVista('simulador')">🗺️ Planificador Semestral</button>
+        <button class="btn-nav"        onclick="cambiarVista('calendario')">📅 Calendario</button>
+        <button class="btn-nav"        onclick="cambiarVista('calculadora')">🧮 Calculadora de Notas</button>
+            <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--borde-tarjeta);">
+                <button class="btn-nav" style="color: #ff0800;" onclick="toggleSidebar(); abrirModalBug()">🐛 Reportar Bug</button>
+            </div>
+    </div>
+
+    <div id="modal-bug" class="modal-fondo" style="display: none;">
+    <div class="modal-caja">
+        <h3 style="margin-top:0; color: #d9534f;">🐛 Reportar un Bug</h3>
+        <p style="font-size: 0.85em; color: var(--texto-bloqueado); margin-top: -10px;">Tu reporte nos ayuda a mejorar el portal.</p>
+
+        <label style="font-size: 0.85em; font-weight: bold;">¿En qué sección ocurrió?</label>
+        <select id="bug-seccion" class="input-calc" style="width: 100%; margin-bottom: 12px;">
+            <option value="">-- Selecciona --</option>
+            <option value="Malla Curricular">Malla Curricular</option>
+            <option value="Planificador Semestral">Planificador Semestral</option>
+            <option value="Calendario">Calendario</option>
+            <option value="Calculadora de Notas">Calculadora de Notas</option>
+            <option value="Otro">Otro</option>
+        </select>
+
+        <label style="font-size: 0.85em; font-weight: bold;">Describe el problema</label>
+        <textarea id="bug-descripcion" class="input-calc" rows="4"
+            placeholder="Ej: Al hacer clic en exportar, la imagen sale cortada..."
+            style="width: 100%; resize: vertical; margin-bottom: 12px;"></textarea>
+
+        <label style="font-size: 0.85em; font-weight: bold;">Tu correo, para hacer seguimiento</label>
+        <input type="email" id="bug-email" class="input-calc"
+            placeholder="tucorreo@gmail.com" style="width: 100%; margin-bottom: 20px;">
+
+        <div id="bug-mensaje" style="display:none; padding: 10px; border-radius: 8px; text-align: center; font-size: 0.9em; margin-bottom: 12px;"></div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="btn-accion" onclick="cerrarModalBug()">Cancelar</button>
+            <button class="btn-accion" style="background:#d9534f; color:#fff; border-color:#d9534f;" onclick="enviarReporteBug()">Enviar Reporte</button>
+        </div>
+    </div>
+</div>
+
+     <div class="creditos-desarrollo">
+        © 2026 Desarrollado por Rubén Poblete R. & Damián Zapata B.
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
